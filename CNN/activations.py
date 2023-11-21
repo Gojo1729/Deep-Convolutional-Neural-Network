@@ -17,8 +17,12 @@ class CategoricalCrossEntropy:
 
     def forward(self, softmax_y, y_true):
         # y_true is a single dimension class label
+
         samples = len(y_true)
         softmax_y = np.clip(softmax_y, 1e-7, 1 - 1e-7)
+        print(
+            f"Softmax_y shape {softmax_y.shape}, samples {samples}, y_true {y_true.shape}"
+        )
         predicted_prob = softmax_y[range(samples), y_true]
 
         # for the rest of the classes y_true would be 0 so, no need to consider them
@@ -39,7 +43,9 @@ class Softmax_Categorical_CrossEntropy(Layer):
         https://jaykmody.com/blog/stable-softmax/
         """
         self.cached_output = self.activation.forward(y_predicted)
-        # print(f"Softmax output {self.cached_output}, shape {self.cached_output.shape}")
+        print(
+            f"Softmax output shape {self.cached_output.shape}, ytrue shape {y_true.shape}"
+        )
         return self.loss.forward(self.cached_output, y_true)
 
     def backward(self, y_softmax, y_true):
@@ -48,10 +54,10 @@ class Softmax_Categorical_CrossEntropy(Layer):
         @param y_true -> categorical y labels
         """
         samples = len(y_true)
-        # print(f"y softmax shape {y_softmax.shape}")
+        print(f"y softmax shape {y_softmax.shape}, y_true shape {y_true.shape}")
         gradients = y_softmax
         gradients[range(samples), y_true] -= 1
-        # gradients /= samples
+        gradients /= samples
 
         return gradients
 
