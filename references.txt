@@ -1,0 +1,7 @@
+https://www.parasdahal.com/softmax-crossentropy
+
+https://jmlb.github.io/ml/2017/12/26/Calculate_Gradient_Softmax/
+
+https://www.youtube.com/watch?v=5-rVLSc2XdE&ab_channel=SmartAlphaAI
+
+https://pyimagesearch.com/2021/05/06/understanding-weight-initialization-for-neural-networks/
