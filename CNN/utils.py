@@ -2,6 +2,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+def plot_loss_curve(train_loss, val_loss):
+    plt.plot(train_loss, "b", linewidth=3.0, label="Training Loss")
+    plt.plot(val_loss, "r", linewidth=3.0, label="Validation Loss")
+    plt.xlabel("Iteration", fontsize=16)
+    plt.ylabel("Accuracy rate", fontsize=16)
+    plt.legend()
+    plt.title("Training Accuracy", fontsize=16)
+    plt.savefig("training_accuracy.png")
+    plt.show()
+
+
 def plot_accuracy_curve(accuracy_history, val_accuracy_history):
     plt.plot(accuracy_history, "b", linewidth=3.0, label="Training accuracy")
     plt.plot(val_accuracy_history, "r", linewidth=3.0, label="Validation accuracy")

@@ -20,18 +20,14 @@ class Sequential:
         self.validation_loss = []
         self.test_loss = []
 
-    def train(
-        self, train_data, validation_data, test_data, epochs, batch_size, debug=True
-    ):
+    def train(self, train_data, validation_data, epochs, batch_size, debug=True):
         x_train, y_train = train_data
-        x_validation, y_validation = validation_data
-        x_test, y_test = test_data
         train_acc, validation_acc, test_acc = 0, 0, 0
 
         for epoch in range(epochs):
             epoch_start = time.time()
             y_predictions = []
-            train_loss, validation_loss, test_loss = 0, 0, 0
+            train_loss = 0
 
             # for every tenth of epochs print the metrics
 
@@ -43,19 +39,12 @@ class Sequential:
                 generate_batches(x_permuted, y_permuted, batch_size)
             ):
                 y_predicted = self._forward(x_batch)
-
-                # print(
-                #     f"Xbatch size {x_batch.shape}, y_predicted_shape {y_predicted.shape}, y_true shape {y_batch.shape}"
-                # )
                 train_loss += self.cce_loss.forward(y_predicted, y_batch)
 
                 global_grad = self.cce_loss.backward(
                     self.cce_loss.cached_output, y_batch
                 )
-
-                # print(f"global grad shape {global_grad.shape}")
                 self._backward(global_grad, 1e-02)
-
                 y_predictions.append(np.argmax(y_predicted))
 
             train_acc = accuracy(y_predictions, y_permuted)
@@ -63,16 +52,19 @@ class Sequential:
 
             self.train_loss.append(train_loss / len(y_permuted))
 
+            # validation
+            validation_acc, validation_loss = self.validate(validation_data)
+            self.validation_accuracy.append(validation_acc)
+            self.validation_loss.append(validation_loss)
+
             if epoch:
                 print("-" * 10)
                 print(f"Epoch {epoch}, Time {time.time() - epoch_start} seconds")
                 print(
-                    f"Train Accuracy {train_acc}, Validation accuracy {validation_acc}, Test accuracy {test_acc}"
+                    f"Train Accuracy {train_acc}, Validation accuracy {validation_acc}"
                 )
 
-                print(
-                    f"Train Loss {train_loss}, Validation loss {validation_loss}, Test loss {test_loss}"
-                )
+                print(f"Train Loss {train_loss}, Validation loss {validation_loss}")
                 print("-" * 10)
 
     def _forward(self, x_batch):
@@ -93,3 +85,31 @@ class Sequential:
 
         for layer in reversed(self.layers):
             prev_layer_grad = layer.backward(prev_layer_grad, learning_rate)
+
+    def test(self, test_data):
+        x_test, y_test = test_data
+        y_predictions = []
+        test_loss = 0
+
+        for x_batch, y_batch in generate_batches(x_test, y_test, 1):
+            y_pred_test = self._forward(x_batch)
+            test_loss += self.cce_loss.forward(y_pred_test, y_batch)
+
+            y_predictions.append(np.argmax(y_pred_test))
+
+        test_acc = accuracy(y_predictions, y_test)
+        return test_acc, test_loss / len(y_test)
+
+    def validate(self, validation_data):
+        x_validate, y_validate = validation_data
+        y_predictions = []
+        valid_loss = 0
+
+        for x_batch, y_batch in generate_batches(x_validate, y_validate, 1):
+            y_pred_validate = self._forward(x_batch)
+            valid_loss += self.cce_loss.forward(y_pred_validate, y_batch)
+
+            y_predictions.append(np.argmax(y_pred_validate))
+
+        validation_acc = accuracy(y_predictions, y_validate)
+        return validation_acc, valid_loss / len(y_validate)
