@@ -31,6 +31,8 @@ def minmax_normalize(x):
 
 
 def accuracy(y_predicted, y_true):
+    # print(y_predicted)
+    # print(y_true)
     return ((y_predicted == y_true).mean()) * 100
 
 

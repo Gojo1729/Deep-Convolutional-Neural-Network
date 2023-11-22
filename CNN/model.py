@@ -30,7 +30,7 @@ class Sequential:
 
         for epoch in range(epochs):
             epoch_start = time.time()
-            y_predictions = np.zeros_like(y_train)
+            y_predictions = np.array([])
             train_loss, validation_loss, test_loss = 0, 0, 0
 
             # for every tenth of epochs print the metrics
@@ -44,30 +44,30 @@ class Sequential:
             ):
                 y_predicted = self._forward(x_batch)
 
-                print(
-                    f"Xbatch size {x_batch.shape}, y_predicted_shape {y_predicted.shape}, y_true shape {y_batch.shape}"
-                )
+                # print(
+                #     f"Xbatch size {x_batch.shape}, y_predicted_shape {y_predicted.shape}, y_true shape {y_batch.shape}"
+                # )
 
-                try:
-                    train_loss += self.cce_loss.forward(y_predicted, y_batch)
-                except Exception:
-                    print("Exception")
+                train_loss += self.cce_loss.forward(y_predicted, y_batch)
 
                 global_grad = self.cce_loss.backward(
                     self.cce_loss.cached_output, y_batch
                 )
 
-                print(f"global grad shape {global_grad.shape}")
-                self._backward(global_grad, 1e-02)
+                # print(f"global grad shape {global_grad.shape}")
+                self._backward(global_grad, 1e-2)
 
-                start_idx = idx * batch_size
-                end_idx = start_idx + batch_size
-                y_predictions[start_idx:end_idx, :] = y_predicted
+                # start_idx = idx * batch_size
+                # end_idx = start_idx + y_predicted.shape[0]
+                y_predictions = np.append(y_predictions, np.argmax(y_predicted, axis=1))
+                # y_predictions[start_idx:end_idx, :] = y_predicted
 
+            train_loss /= len(y_permuted)
+            # print(f"y_pred shape {y_predictions.shape}")
             train_acc = accuracy(y_predictions, y_permuted)
             self.train_accuracy.append(train_acc)
 
-            self.train_loss.append(train_loss / len(y_permuted))
+            self.train_loss.append(train_loss)
 
             if epoch:
                 print("-" * 10)
