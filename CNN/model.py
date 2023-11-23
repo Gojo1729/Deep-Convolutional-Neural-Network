@@ -22,7 +22,7 @@ class Sequential:
 
     def train(self, train_data, validation_data, epochs, batch_size, debug=True):
         x_train, y_train = train_data
-        train_acc, validation_acc, test_acc = 0, 0, 0
+        train_acc, validation_acc = 0, 0
 
         for epoch in range(epochs):
             epoch_start = time.time()

@@ -5,3 +5,8 @@ https://jmlb.github.io/ml/2017/12/26/Calculate_Gradient_Softmax/
 https://www.youtube.com/watch?v=5-rVLSc2XdE&ab_channel=SmartAlphaAI
 
 https://pyimagesearch.com/2021/05/06/understanding-weight-initialization-for-neural-networks/
+
+
+https://www.youtube.com/watch?v=3TdBtI9dh2I
+
+https://deeplearning.cs.cmu.edu/F21/document/recitation/Recitation5/CNN_Backprop_Recitation_5_F21.pdf
