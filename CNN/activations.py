@@ -18,7 +18,7 @@ class CategoricalCrossEntropy:
     def forward(self, softmax_y, y_true):
         # y_true is a single dimension class label
         samples = len(y_true)
-        softmax_y = np.clip(softmax_y, 1e-7, 1 - 1e-7)
+        softmax_y = np.clip(softmax_y, 1e-20, 1 - 1e-20)
         predicted_prob = softmax_y[range(samples), y_true]
 
         # for the rest of the classes y_true would be 0 so, no need to consider them
