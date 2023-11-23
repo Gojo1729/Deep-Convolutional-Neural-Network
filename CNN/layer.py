@@ -8,7 +8,9 @@ class Layer:
         self.layer_name = layer_name
 
     def forward(self, input_activations):
+        print(f"Performing forward pass for the layer {self.layer_name}")
         pass
 
     def backward(self):
+        print(f"Performing backward pass for the layer {self.layer_name}")
         pass
