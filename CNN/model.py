@@ -20,7 +20,9 @@ class Sequential:
         self.validation_loss = []
         self.test_loss = []
 
-    def train(self, train_data, validation_data, epochs, batch_size, debug=True):
+    def train(
+        self, train_data, validation_data, epochs, batch_size, learning_rate, debug=True
+    ):
         x_train, y_train = train_data
         train_acc, validation_acc = 0, 0
 
@@ -44,7 +46,7 @@ class Sequential:
                 global_grad = self.cce_loss.backward(
                     self.cce_loss.cached_output, y_batch
                 )
-                self._backward(global_grad, 1e-02)
+                self._backward(global_grad, learning_rate)
                 y_predictions.append(np.argmax(y_predicted))
 
             train_acc = accuracy(y_predictions, y_permuted)
@@ -57,19 +59,16 @@ class Sequential:
             self.validation_accuracy.append(validation_acc)
             self.validation_loss.append(validation_loss)
 
-            if epoch:
-                print("-" * 10)
-                print(f"Epoch {epoch}, Time {time.time() - epoch_start} seconds")
-                print(
-                    f"Train Accuracy {train_acc}, Validation accuracy {validation_acc}"
-                )
-
-                print(f"Train Loss {train_loss}, Validation loss {validation_loss}")
-                print("-" * 10)
+            print("-" * 10)
+            print(f"Epoch {epoch}, Time {time.time() - epoch_start} seconds")
+            print(f"Train Accuracy {train_acc}, Validation accuracy {validation_acc}")
+            print(f"Train Loss {train_loss}, Validation loss {validation_loss}")
+            print("-" * 10)
 
     def _forward(self, x_batch):
         prev_layer_activation = x_batch
         for layer in self.layers:
+            # print(f"Forward pass -> {layer.layer_name=}")
             prev_layer_activation = layer.forward(prev_layer_activation)
             # print(
             #     f"ypred_shape of layer {layer.layer_name}, shape {prev_layer_activation.shape}"
@@ -84,6 +83,7 @@ class Sequential:
         prev_layer_grad = global_grad
 
         for layer in reversed(self.layers):
+            # print(f"Backward pass -> {layer.layer_name=}")
             prev_layer_grad = layer.backward(prev_layer_grad, learning_rate)
 
     def test(self, test_data):
