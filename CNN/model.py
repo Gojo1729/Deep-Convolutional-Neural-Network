@@ -41,7 +41,7 @@ class Sequential:
                     end="",
                 )
                 y_predicted = self._forward(x_batch)
-                epoch_loss += self.cce_loss.forward(y_predicted, y_batch).mean()
+                epoch_loss += self.cce_loss.forward(y_predicted, y_batch)
                 global_grad = self.cce_loss.backward(
                     self.cce_loss.cached_output, y_batch
                 )
@@ -49,9 +49,11 @@ class Sequential:
                 y_predictions = np.append(y_predictions, np.argmax(y_predicted, axis=1))
 
             # train metrics
+
+            total_epoch_loss = epoch_loss / len(y_permuted)
             train_acc = accuracy(y_predictions, y_permuted)
             self.train_accuracy.append(train_acc)
-            self.train_loss.append(epoch_loss)
+            self.train_loss.append(total_epoch_loss)
 
             # validation metrics
             validation_acc, validation_loss = self._validate(validation_data)
@@ -61,7 +63,7 @@ class Sequential:
             # epoch metrics
             print(f"\nTime {time.time() - epoch_start} seconds")
             print(f"Train Accuracy {train_acc}, Validation accuracy {validation_acc}")
-            print(f"Train Loss {epoch_loss}, Validation loss {validation_loss}")
+            print(f"Train Loss {total_epoch_loss}, Validation loss {validation_loss}")
             print("-" * 10)
 
     def _forward(self, x_batch):
@@ -85,7 +87,7 @@ class Sequential:
         test_loss = self.cce_loss.forward(y_pred_test, y_test)
         test_accuracy = accuracy(np.argmax(y_pred_test, axis=1), y_test)
 
-        return test_accuracy, test_loss.mean()
+        return test_accuracy, test_loss
 
     def _validate(self, validation_data):
         x_validate, y_validate = validation_data
@@ -94,4 +96,4 @@ class Sequential:
         valid_loss = self.cce_loss.forward(y_pred_validate, y_validate)
         validation_acc = accuracy(np.argmax(y_pred_validate, axis=1), y_validate)
 
-        return validation_acc, valid_loss.mean()
+        return validation_acc, valid_loss

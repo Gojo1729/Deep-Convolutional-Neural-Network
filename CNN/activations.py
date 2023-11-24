@@ -7,8 +7,8 @@ class Softmax:
         pass
 
     def forward(self, x):
-        exponents = np.exp(x - np.max(x))
-        return exponents / np.sum(exponents)
+        exponents = np.exp(x - x.max(axis=1, keepdims=True))
+        return exponents / np.sum(exponents, axis=1, keepdims=True)
 
 
 class CategoricalCrossEntropy:
@@ -22,7 +22,7 @@ class CategoricalCrossEntropy:
         predicted_prob = softmax_y[range(samples), y_true]
 
         # for the rest of the classes y_true would be 0 so, no need to consider them
-        loss = -np.log(predicted_prob)
+        loss = -np.mean(np.log(predicted_prob))
 
         return loss
 
@@ -47,10 +47,9 @@ class Softmax_Categorical_CrossEntropy(Layer):
         @param y_true -> categorical y labels
         """
         samples = len(y_true)
-        # print(f"y softmax shape {y_softmax.shape}")
         gradients = y_softmax
         gradients[range(samples), y_true] -= 1
-        # gradients /= samples
+        gradients /= samples
 
         return gradients
 
