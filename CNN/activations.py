@@ -39,7 +39,6 @@ class Softmax_Categorical_CrossEntropy(Layer):
         https://jaykmody.com/blog/stable-softmax/
         """
         self.cached_output = self.activation.forward(y_predicted)
-        # print(f"Softmax output {self.cached_output}, shape {self.cached_output.shape}")
         return self.loss.forward(self.cached_output, y_true)
 
     def backward(self, y_softmax, y_true):
