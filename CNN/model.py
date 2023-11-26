@@ -27,32 +27,36 @@ class Sequential:
             print("-" * 10)
             print(f"Epoch {epoch+1}")
             epoch_start = time.time()
-            y_predictions = []
-            epoch_loss = 0
             permuted_idx = np.random.permutation(range(x_train.shape[0]))
             x_permuted = x_train[permuted_idx]
             y_permuted = y_train[permuted_idx]
-
+            correct_predictions, epoch_loss = 0.0, 0.0
+            n_samples = x_train.shape[0]
             for idx, (x_batch, y_batch) in enumerate(
                 generate_batches(x_permuted, y_permuted, batch_size)
             ):
-                print(
-                    f"\r Epoch Progress {((idx/(x_train.shape[0]/batch_size)) * 100):.2f} %",
-                    end="",
-                )
+                batch_loss = 0
                 y_predicted = self._forward(x_batch)
-                epoch_loss += self.cce_loss.forward(y_predicted, y_batch)
+                # assert y_predicted.shape == y_predicted.shape
+                batch_loss = self.cce_loss.forward(y_predicted, y_batch)
+                epoch_loss += batch_loss
                 global_grad = self.cce_loss.backward(
                     self.cce_loss.cached_output, y_batch
                 )
                 self._backward(global_grad, learning_rate)
-                y_predictions = np.append(y_predictions, np.argmax(y_predicted, axis=1))
+
+                batch_predictions = np.sum(np.argmax(y_predicted, axis=1) == y_batch)
+                correct_predictions += batch_predictions
+                print(
+                    f"\rEpoch Progress {((idx/(x_train.shape[0]/batch_size)) * 100):.2f} %, batch {idx}, batch loss {batch_loss}, batch accuracy {(batch_predictions/x_batch.shape[0]) * 100}",
+                    end="",
+                )
 
             # train metrics
 
-            total_epoch_loss = epoch_loss / len(y_permuted)
-            train_acc = accuracy(y_predictions, y_permuted)
-            self.train_accuracy.append(train_acc)
+            total_epoch_loss = epoch_loss / (n_samples // batch_size)
+            total_epoch_accuracy = (correct_predictions / n_samples) * 100
+            self.train_accuracy.append(total_epoch_accuracy)
             self.train_loss.append(total_epoch_loss)
 
             # validation metrics
@@ -62,7 +66,9 @@ class Sequential:
 
             # epoch metrics
             print(f"\nTime {time.time() - epoch_start} seconds")
-            print(f"Train Accuracy {train_acc}, Validation accuracy {validation_acc}")
+            print(
+                f"Train Accuracy {total_epoch_accuracy}, Validation accuracy {validation_acc}"
+            )
             print(f"Train Loss {total_epoch_loss}, Validation loss {validation_loss}")
             print("-" * 10)
 
@@ -85,7 +91,7 @@ class Sequential:
         test_accuracy, test_loss = 0, 0
         y_pred_test = self._forward(x_test)
         test_loss = self.cce_loss.forward(y_pred_test, y_test)
-        test_accuracy = accuracy(np.argmax(y_pred_test, axis=1), y_test)
+        test_accuracy = (np.argmax(y_pred_test, axis=1) == y_test).mean() * 100
 
         return test_accuracy, test_loss
 
@@ -94,6 +100,6 @@ class Sequential:
         validation_acc, valid_loss = 0, 0
         y_pred_validate = self._forward(x_validate)
         valid_loss = self.cce_loss.forward(y_pred_validate, y_validate)
-        validation_acc = accuracy(np.argmax(y_pred_validate, axis=1), y_validate)
+        validation_acc = (np.argmax(y_pred_validate, axis=1) == y_validate).mean() * 100
 
         return validation_acc, valid_loss

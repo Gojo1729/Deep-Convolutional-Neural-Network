@@ -160,3 +160,5 @@ cython_debug/
 #.idea/
 *.gz
 *.pkl
+data/*
+raw_data/*
