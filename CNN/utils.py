@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
+import cv2
+import os
 
 img_folder = "./images"
 
@@ -100,6 +103,66 @@ def generate_batches(x: np.array, y: np.array, batch_size: int):
             x.take(indices=range(i, min(i + batch_size, x.shape[0])), axis=0),
             y.take(indices=range(i, min(i + batch_size, y.shape[0])), axis=0),
         )
+
+
+# endregion
+
+# region BB
+
+
+def displayBoundingBoxes(contours, rows=2, cols=6):
+    fig, axes = plt.subplots(rows, cols, figsize=(12, 8))
+    kernel = np.array([[0, -1, 0], [-1, 6, -1], [0, -1, 0]])
+
+    for i, ax in enumerate(axes.flat):
+        img = contours[i]
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img = cv2.GaussianBlur(img, (5, 5), 0)
+        img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+        ax.imshow(img, cmap="gray")
+        ax.set_title(f"{i} bounding box")
+        ax.axis("off")
+    plt.show()
+
+
+# endregion
+
+
+def save_model(model, model_name: str, path: str = "./models/"):
+    import time
+
+    model_name = f"{model_name}_{time.strftime('%Y%m%d%H%M%S')}.pkl"
+    with open(f"{path}/{model_name}", "wb") as saved_model:
+        pickle.dump(model, saved_model, pickle.HIGHEST_PROTOCOL)
+
+
+# region load and save model
+def load_model(model_path: str = "./models/exp1_10k_train_2_20231127191523.pkl"):
+    from layers.conv import ConvLayer
+    from layers.dense import DenseLayer
+    from layers.flatten import Flatten
+    from layers.maxpool import MaxPool
+    from layers.relu import ReluLayer
+
+    with open(model_path, "rb") as inp_model:
+        model = pickle.load(inp_model)
+        return model
+
+
+# endregion
+
+
+# region preprocess
+def preprocess_image(img):
+    kernel = np.array([[0, -1, 0], [-1, 6, -1], [0, -1, 0]])
+    img = cv2.resize(img, (55, 55), cv2.INTER_CUBIC, fx=0.1, fy=0.1)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.GaussianBlur(img, (5, 5), 0)
+    img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+    # img = cv2.dilate(img, np.ones((2, 2), np.uint8), iterations=1)
+    # img = cv2.filter2D(img, -1, kernel)
+
+    return img
 
 
 # endregion

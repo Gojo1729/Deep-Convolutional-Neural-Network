@@ -1,5 +1,5 @@
 from typing import List
-from layer import Layer
+from baselayer import Layer
 import time
 import numpy as np
 from activations import Softmax_Categorical_CrossEntropy

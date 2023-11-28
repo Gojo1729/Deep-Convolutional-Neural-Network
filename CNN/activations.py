@@ -1,5 +1,5 @@
 import numpy as np
-from layer import Layer
+from baselayer import Layer
 
 
 class Softmax:
