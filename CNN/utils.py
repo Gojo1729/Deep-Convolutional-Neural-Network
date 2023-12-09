@@ -16,7 +16,7 @@ def plot_loss_curve(train_loss, val_loss):
     plt.plot(train_loss, "b", linewidth=3.0, label="Training Loss")
     plt.plot(val_loss, "r", linewidth=3.0, label="Validation Loss")
     plt.xlabel("Iteration", fontsize=16)
-    plt.ylabel("Accuracy rate", fontsize=16)
+    plt.ylabel("Loss rate", fontsize=16)
     plt.legend()
     plt.title("Training vs Validation loss", fontsize=16)
     plt.savefig(f"{img_folder}/train_val_loss.png")
@@ -96,11 +96,13 @@ def minmax_normalize(x):
 
 def visualize_filters(images, rows, cols):
     fig, axes = plt.subplots(rows, cols, figsize=(12, 8))
+
     for i, ax in enumerate(axes.flat):
         img = images[i][0]
         ax.imshow(img, cmap="gray")
-        ax.set_title(f"{i} activation")
+        ax.set_title(f"{i+1} activation")
         ax.axis("off")
+
     plt.show()
 
 
@@ -109,7 +111,7 @@ def visualize_activations(images, rows, cols):
     for i, ax in enumerate(axes.flat):
         img = images[i]
         ax.imshow(img, cmap="gray")
-        ax.set_title(f"{i} activation")
+        ax.set_title(f"{i+1} activation")
         ax.axis("off")
     plt.show()
 
