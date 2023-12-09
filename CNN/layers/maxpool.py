@@ -8,7 +8,6 @@ class MaxPool(Layer):  # max pooling layer using pool size equal to 2
         self.cached_input = None
         self.pool_stride = stride
         self.pool_size = pool_size
-        self.mask_caches = {}
 
     def forward(self, activation):
         self.cached_input = activation
@@ -69,3 +68,9 @@ class MaxPool(Layer):  # max pooling layer using pool size equal to 2
                 out_y += 1
 
         return output_gradient
+
+    def layer_info(self):
+        layer_log = f"Layer Name -> {self.layer_name}\n"
+        layer_log += f"Pool size -> {self.pool_size}\n"
+        layer_log += f"Stride -> {self.pool_stride}\n"
+        return layer_log

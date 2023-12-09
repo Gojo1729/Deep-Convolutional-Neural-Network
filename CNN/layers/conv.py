@@ -11,6 +11,7 @@ class ConvLayer(Layer):
         self.n_filters = n_filters
         self.debug = debug
         self.cached_input_activations = None
+        self.conv_filters = None
 
     def get_patch(self, image, width_idx, height_idx, filter_size):
         return image[
@@ -19,6 +20,10 @@ class ConvLayer(Layer):
             height_idx : height_idx + filter_size,
             width_idx : width_idx + filter_size,
         ]
+
+    def reset_weights(self):
+        self.init = True
+        self.conv_filters = None
 
     def forward(self, input_activations):
         """
@@ -39,17 +44,25 @@ class ConvLayer(Layer):
         if self.debug:
             print(f"{n_samples=}, {input_channels=}, {input_width=}, {input_height=}")
 
-        variance = 2 / (input_channels + self.n_filters)
-        self.conv_filter = np.random.normal(
-            0.0,
-            np.sqrt(variance),
-            size=(self.n_filters, input_channels, self.filter_size, self.filter_size),
-        )
+        if self.init:
+            print(f"Init params {self.layer_name}")
+            variance = 2 / (input_channels + self.n_filters)
+            self.conv_filters = np.random.normal(
+                0.0,
+                np.sqrt(variance),
+                size=(
+                    self.n_filters,
+                    input_channels,
+                    self.filter_size,
+                    self.filter_size,
+                ),
+            )
+            self.init = False
 
         output_shape = (int((input_width - self.filter_size) / self.stride)) + 1
         output_activations = np.zeros([])
 
-        for conv_filter in self.conv_filter:
+        for conv_filter in self.conv_filters:
             filter_output = np.zeros((n_samples, output_shape, output_shape))
             height_idx = 0
             filter_y = 0
@@ -74,7 +87,6 @@ class ConvLayer(Layer):
 
                 height_idx += self.stride
                 filter_y += 1
-                # filter_output = filter_output.reshape(output_shape, output_shape)
 
             if first_activation:
                 output_activations = filter_output
@@ -111,17 +123,14 @@ class ConvLayer(Layer):
             input_width,
             input_height,
         ) = self.cached_input_activations.shape
-        first_activation = True
         output_gradients = np.zeros_like(
             self.cached_input_activations, dtype=np.float64
         )
-        local_gradients = np.zeros_like(self.conv_filter)
+        local_gradients = np.zeros_like(self.conv_filters)
 
-        for c_id, conv_filter in enumerate(self.conv_filter):
-            # print(f"entering loop {c_id}")
+        for c_id, conv_filter in enumerate(self.conv_filters):
             height_idx = 0
             filter_y = 0
-            # filter_grad = np.zeros(shape=(self.n_filters, self.filter_size, self.filter_size))
 
             while height_idx + self.filter_size <= input_height:
                 width_idx = 0
@@ -153,12 +162,15 @@ class ConvLayer(Layer):
                 height_idx += self.stride
                 filter_y += 1
 
-            # print(f"{local_gradients.shape=}, {filter_grad.shape=}")
-
-            # local_gradients[c_id] = filter_grad[c_id]
-
         if self.debug:
             print(f"{local_gradients.shape=}")
-        self.conv_filter -= learning_rate * (local_gradients / n_samples)
+        self.conv_filters -= learning_rate * (local_gradients / n_samples)
 
         return output_gradients
+
+    def layer_info(self):
+        layer_log = f"Layer Name -> {self.layer_name}\n"
+        layer_log += f"Number of filters -> {self.n_filters}\n"
+        layer_log += f"Filters shape -> {self.conv_filters.shape}\n"
+        layer_log += f"Stride -> {self.stride}\n"
+        return layer_log

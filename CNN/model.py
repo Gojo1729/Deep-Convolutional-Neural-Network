@@ -16,13 +16,41 @@ class Sequential:
         self.validation_accuracy = []
         self.train_loss = []
         self.validation_loss = []
+        self.log = ""
+        self.stars = "*" * 10 + "\n"
+        self.dashes = "-" * 10 + "\n"
+        self.train_log = ""
+
+    def _log_train_params(
+        self,
+        epochs,
+        batch_size,
+        learning_rate,
+        train_acc,
+        train_loss,
+        val_acc,
+        val_loss,
+    ):
+        self.train_log += (
+            f"Epochs -> {epochs}\nBatch Size -> {batch_size}\n"
+            f"Learning rate -> {learning_rate}\n"
+            f"Accuracy and Loss at the end of {epochs+1} epochs\n"
+            f"Train Accuracy -> {train_acc}, Validation Accuracy -> {val_acc}\n"
+            f"Train Loss -> {train_loss}, Validation Loss -> {val_loss}\n"
+        )
+        self.train_log += self.stars
+
+    def reset_params(self):
+        for layer in self.layers:
+            layer.reset_weights()
 
     def train(
         self, train_data, validation_data, epochs, batch_size, learning_rate, debug=True
     ):
         x_train, y_train = train_data
-        train_acc, validation_acc = 0, 0
+        validation_acc = 0.0
         self.train_loss = []
+
         for epoch in range(epochs):
             print("-" * 10)
             print(f"Epoch {epoch+1}")
@@ -72,6 +100,16 @@ class Sequential:
             print(f"Train Loss {total_epoch_loss}, Validation loss {validation_loss}")
             print("-" * 10)
 
+        self._log_train_params(
+            epochs,
+            batch_size,
+            learning_rate,
+            self.train_accuracy[-1],
+            self.train_loss[-1],
+            self.validation_accuracy[-1],
+            self.validation_loss[-1],
+        )
+
     def _forward(self, x_batch):
         prev_layer_activation = x_batch
         for layer in self.layers:
@@ -103,3 +141,30 @@ class Sequential:
         validation_acc = (np.argmax(y_pred_validate, axis=1) == y_validate).mean() * 100
 
         return validation_acc, valid_loss
+
+    def _layers_info(self):
+        log = f"Number of Layers {len(self.layers)}\n"
+        for layer_index, layer in enumerate(self.layers):
+            log += self.dashes
+            log += f"Layer {layer_index+1}\n"
+            log += layer.layer_info()
+            log += self.dashes
+        return log
+
+    # region logging
+    def model_log(self):
+        log = self.stars
+        # layers log, number of
+        log += "##### Layer Info #####\n"
+        log += self._layers_info()
+        log += self.stars
+        return log
+
+    def train_logs(self):
+        log = self.stars
+        log += f"Train and Validation metrics\n"
+        log += self.train_log
+
+        return log
+
+    # endregion

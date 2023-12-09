@@ -3,6 +3,10 @@ import numpy as np
 import pickle
 import cv2
 import os
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+from sklearn.metrics import accuracy_score, classification_report
+import scikitplot as skplt
 
 img_folder = "./images"
 
@@ -37,6 +41,49 @@ def plot_learning_curve(loss_history):
     plt.legend()
     plt.title("Learning Curve", fontsize=16)
     plt.savefig("learning_curve.png")
+    plt.show()
+
+
+def plot_confusion_matrix(model, labels, x_test, y_true, y_probs):
+    y_test_predictions = y_probs
+
+    target_names = labels
+
+    # Generate confusion matrix
+    cm = confusion_matrix(y_test_predictions, y_true)
+
+    # Print confusion matrix
+    print("Confusion Matrix:")
+
+    # Plot confusion matrix using seaborn
+    plt.figure(figsize=(10, 10))
+    sns.heatmap(
+        cm,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        xticklabels=target_names,
+        yticklabels=target_names,
+    )
+    plt.title("Confusion Matrix")
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    plt.show()
+
+    # Calculate accuracy and other metrics
+    accuracy = accuracy_score(y_test_predictions, y_true)
+    report = classification_report(
+        y_true, y_test_predictions, target_names=target_names
+    )
+
+    # Print accuracy and classification report
+    print(f"Accuracy: {accuracy:.2f}")
+    print("Classification Report:")
+    print(report)
+
+
+def plot_roc_curve(y_test, y_test_probs):
+    skplt.metrics.plot_roc(y_test, y_test_probs)
     plt.show()
 
 
@@ -116,9 +163,7 @@ def displayBoundingBoxes(contours, rows=2, cols=6):
 
     for i, ax in enumerate(axes.flat):
         img = contours[i]
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        img = cv2.GaussianBlur(img, (5, 5), 0)
-        img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+        img = preprocess_image(img)
         ax.imshow(img, cmap="gray")
         ax.set_title(f"{i} bounding box")
         ax.axis("off")
@@ -154,14 +199,11 @@ def load_model(model_path: str = "./models/exp1_10k_train_2_20231127191523.pkl")
 
 # region preprocess
 def preprocess_image(img):
-    kernel = np.array([[0, -1, 0], [-1, 6, -1], [0, -1, 0]])
-    img = cv2.resize(img, (55, 55), cv2.INTER_CUBIC, fx=0.1, fy=0.1)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = cv2.GaussianBlur(img, (5, 5), 0)
     img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-    # img = cv2.dilate(img, np.ones((2, 2), np.uint8), iterations=1)
-    # img = cv2.filter2D(img, -1, kernel)
-
+    img = cv2.copyMakeBorder(img, 5, 5, 5, 5, cv2.BORDER_CONSTANT, value=0)
+    img = cv2.resize(img, (55, 55), cv2.INTER_CUBIC, fx=0.1, fy=0.1)
     return img
 
 

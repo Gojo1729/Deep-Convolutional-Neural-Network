@@ -3,28 +3,48 @@ from baselayer import Layer
 
 
 class DenseLayer(Layer):
-    def __init__(self, layer_name, input_nodes, output_nodes, debug=False):
+    def __init__(
+        self, layer_name, input_nodes, output_nodes, glorot_init=True, debug=False
+    ):
         super().__init__(layer_name)
         self.debug = debug
         self.input_nodes = input_nodes
         self.output_nodes = output_nodes
+        self.weights = None
+        self.bias = None
+        # we need to cache the input and output from this layer for the purpose of backprop
+        self.cached_input = None
+        self.cached_output = None
+        self.glorot_activation = glorot_init
 
+    def init_params(self):
+        print(f"Init params {self.layer_name}")
         """
         Gloro/Xavier initialization for weights for faster convergence
         https://pyimagesearch.com/2021/05/06/understanding-weight-initialization-for-neural-networks/
         """
-        limit = np.sqrt(2 / float(input_nodes + output_nodes))
-        self.weights = np.random.normal(0.0, limit, size=(input_nodes, output_nodes))
+        limit = np.sqrt(2 / float(self.input_nodes + self.output_nodes))
+        if self.glorot_activation:
+            self.weights = np.random.normal(
+                0.0, limit, size=(self.input_nodes, self.output_nodes)
+            )
+        else:
+            self.weights = np.random.randn(self.input_nodes, self.output_nodes)
 
         """ 
         No initialization is required for bias,
         https://cs231n.github.io/neural-networks-2/#:~:text=Initializing%20the%20biases
         """
-        self.bias = np.zeros((1, output_nodes))
+        self.bias = np.zeros((1, self.output_nodes))
 
         # we need to cache the input and output from this layer for the purpose of backprop
         self.cached_input = None
         self.cached_output = None
+        self.init = False
+
+    def reset_weights(self):
+        self.init = True
+        self.weights, self.bias = None, None
 
     # overriden
     def forward(self, input_activations):
@@ -39,6 +59,10 @@ class DenseLayer(Layer):
         3. Cache the input and logits for backpop
         4. Apply softmax on logits and return it
         """
+
+        # init the weights for the first epoch
+        if self.init:
+            self.init_params()
 
         shape = input_activations.shape
         layer_input = input_activations
@@ -86,3 +110,10 @@ class DenseLayer(Layer):
         self.bias -= current_lr * np.sum(output_grad, axis=0, keepdims=True)
 
         return input_grad
+
+    def layer_info(self):
+        layer_log = f"Layer Name -> {self.layer_name}\n"
+        # weights shape
+        layer_log += f"Weights shape -> {self.weights.shape}\n"
+
+        return layer_log
