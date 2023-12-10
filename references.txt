@@ -14,31 +14,3 @@ https://deeplearning.cs.cmu.edu/F21/document/recitation/Recitation5/CNN_Backprop
 https://www.educative.io/answers/how-to-backpropagate-through-max-pooling-layers
 
 https://pyimagesearch.com/2015/04/20/sorting-contours-using-python-and-opencv/
-
-1. BB -> Model -> Equation solver
-2. Tensorboard for logging.
-
-
-3. Report.
-It should have the following sections at the minimum:
-• Abstract - Done 
-• Introduction and background work - 
-
-
-• Theoretical and conceptual study of the technique/algorithm you would 
-like to implement
-    1. Preprocessing:
-        Bounding box
-    2. DCNN - 
-        CNN
-        Dense layer
-        Relu, Maxpool
-
-
-    
-• Results and analysis. Please include results in tabular or graphical 
-formats. Be sure to analyze your results well.
-    1. Dependent
-
-• Conclusion and future work - 
-• References - 
