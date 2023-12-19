@@ -1,1 +1,1 @@
-# ML6375-Project
+Equation solver using DCNN
